@@ -1,0 +1,468 @@
+---
+title: "30 pandas puzzles solved in R Tidyverse"
+output:
+  html_document:
+    code_folding: show
+---
+
+The original source of the pandas exercises is  [100 Pandas Puzzles](https://github.com/ajcr/100-pandas-puzzles/blob/master/100-pandas-puzzles.ipynb), the pandas solutions can be found on the very same website.
+
+I solved 30 of the 60 pandas exercises in R. The notebook is yet incomplete, will definitely still contain mistakes and puzzles 28 remains yet unsolved. My R coding skills still need a lot of improvements but since so few learning material is out there catering to R Tidyverse and Python pandas learners, I chose to give it a shot and at least cover the basics. If you like to find out more about the differences between pandas and R, I recommen checking out the [Pandas Quick Reference](https://pandas.pydata.org/docs/getting_started/comparison/comparison_with_r.html) I hopefully will complete the remaining exercises sooner or later. I'll post the solutions in this repository, so stay tuned. 
+
+**The code solutions are still visible but can be toggled to invisible by clicking the "code" button on the right.**
+
+Original notes:
+
+Inspired by 100 Numpy exercises, here are 100* short puzzles for testing your knowledge of pandas' power.
+
+Since pandas is a large library with many different specialist features and functions, these excercises focus mainly on the fundamentals of manipulating data (indexing, grouping, aggregating, cleaning), making use of the core DataFrame and Series objects. 
+
+Many of the excerises here are stright-forward in that the solutions require no more than a few lines of code (in pandas or NumPy... don't go using pure Python or Cython!). Choosing the right methods and following best practices is the underlying goal.
+
+The exercises are loosely divided in sections. Each section has a difficulty rating; these ratings are subjective, of course, but should be a seen as a rough guide as to how inventive the required solution is.
+
+Enjoy the puzzles!
+
+\* *the list of exercises is not yet complete! Pull requests or suggestions for additional exercises, corrections and improvements are welcomed.*
+
+
+## Importing tidyverse
+
+### Getting started and checking your tidyverse setup
+
+Difficulty: *easy* 
+
+**1.** Import the tidyverse package.
+
+```{r}
+library(tidyverse)
+```
+**2.** Print the version of tidyverse that has been imported.
+
+```{r}
+packageVersion("tidyverse")
+```
+**3.** Print out all the *version* information of the libraries that are included with the tidyverse library.
+```{r}
+sessionInfo()
+```
+
+## DataFrame basics
+
+### A few of the fundamental routines for selecting, sorting, adding and aggregating data in DataFrames
+
+Difficulty: *easy*
+
+Consider the following Python dictionary `data` and Python list `labels`:
+
+```
+data = {'animal': ['cat', 'cat', 'snake', 'dog', 'dog', 'cat', 'snake', 'cat', 'dog', 'dog'],
+        'age': [2.5, 3, 0.5, np.nan, 5, 2, 4.5, np.nan, 7, 3],
+        'visits': [1, 3, 2, 3, 2, 3, 1, 1, 2, 1],
+        'priority': ['yes', 'yes', 'no', 'yes', 'no', 'no', 'no', 'yes', 'no', 'no']}
+
+labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+```
+(This is just some meaningless data I made up with the theme of animals and trips to a vet.)
+
+**4.** Create an R tibble or dataframe called `df` from the Python `data` which has the index `labels`.
+
+```{r}
+animal <-
+  c('cat',
+    'cat',
+    'snake',
+    'dog',
+    'dog',
+    'cat',
+    'snake',
+    'cat',
+    'dog',
+    'dog')
+age <- c(2.5, 3, 0.5, NA, 5, 2, 4.5, NA, 7, 3)
+visits <- c(1, 3, 2, 3, 2, 3, 1, 1, 2, 1)
+priority <-
+  c('yes', 'yes', 'no', 'yes', 'no', 'no', 'no', 'yes', 'no', 'no')
+df <- data.frame(age, animal, priority, visits)
+row.names(df) <- c('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j')
+
+df <- as_tibble(df)
+str(df)
+```
+
+**5.** Display a summary of the basic information about this DataFrame and its data (*hint: there is a single method that can be called on the DataFrame*).
+
+```{r}
+summary(df)
+#glimpse(df)
+#dim(df)
+#str(df)
+#print(df, quote = TRUE, row.names = FALSE)
+```
+**6.** Return the first 3 rows of the DataFrame `df`.
+
+```{r}
+head(df,3)
+```
+
+**7.** Select just the 'animal' and 'age' columns from the DataFrame `df`.
+
+```{r}
+df %>% 
+  select(animal, age)
+```
+
+**8.** Select the data in rows `[3, 4, 8]` *and* in columns `['animal', 'age']`.
+
+```{r}
+df %>% 
+  select(animal, age) %>% 
+  slice(3, 4, 8)
+```
+
+**9.** Select only the rows where the number of visits is greater than 3.
+
+```{r}
+df %>% 
+  filter(visits > 3)
+```
+
+**10.** Select the rows where the age is missing, i.e. it is `NaN`.
+
+```{r}
+df[rowSums(is.na(df)) > 0,]
+```
+
+
+**11.** Select the rows where the animal is a cat *and* the age is less than 3.
+
+```{r}
+df %>% 
+  select(age,animal)
+  filter(df, animal == "cat") %>% 
+  filter(age < 3)
+```
+
+12.** Select the rows the age is between 2 and 4 (inclusive).
+
+```{r}
+df %>% 
+  filter(1 < age & age < 5)
+```
+
+**13.** Change the age in row 'f' to 1.5.
+
+```{r}
+df[6, 1] = 1.5 #need to check whether row names were included
+```
+
+**14.** Calculate the sum of all visits in `df` (i.e. find the total number of visits).
+
+```{r}
+df %>% 
+  select(visits) #integer column needs to be selected first
+  sum(visits)
+```
+
+**15.** Calculate the mean age for each different animal in `df`.
+
+```{r}
+df %>%
+  group_by(animal) %>%
+  summarise(m = mean(age)) #NAs are not ignored
+```
+
+**16.** Append a new row 'k' to `df` with your choice of values for each column. Then delete that row to return the original DataFrame.
+
+```{r}
+k <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+with_and_without_k <- df %>%
+  add_column(k)
+```
+
+```{r}
+# and then deleting the new row...
+
+with_and_without_k %>%
+  select(-one_of("k"))
+```
+
+**17.** Count the number of each type of animal in `df`.
+
+```{r}
+df %>%
+  count(animal)
+```
+
+**18.** Sort `df` first by the values in the 'age' in *decending* order, then by the value in the 'visits' column in *ascending* order (so row `i` should be first, and row `d` should be last).
+
+```{r}
+df %>%
+  arrange(desc(age), visits)
+```
+
+**19.** The 'priority' column contains the values 'yes' and 'no'. Replace this column with a column of boolean values: 'yes' should be `True` and 'no' should be `False`.
+
+```{r}
+df %>% 
+  mutate(boolean_values = case_when(priority == 'yes' ~ 1, 
+                                    priority == 'no' ~ 0))
+```
+
+**20.** In the 'animal' column, change the 'snake' entries to 'python'.
+
+```{r}
+df %>% 
+  select(animal)
+  recode(animal, snake  = "python")
+```
+
+**21.** For each animal type and each number of visits, find the mean age. In other words, each row is an animal, each column is a number of visits and the values are the mean ages (*hint: use a pivot table*).
+
+```{r}
+df %>%
+  group_by(animal) %>%
+  summarise(mean = mean(visits), n = n())
+```
+
+## DataFrames: beyond the basics
+
+### Slightly trickier: you may need to combine two or more methods to get the right answer
+
+Difficulty: *medium*
+
+The previous section was tour through some basic but essential DataFrame operations. Below are some ways that you might need to cut your data, but for which there is no single "out of the box" method.
+
+
+**22.** You have a DataFrame `df` with a column 'A' of integers. For example:
+
+```
+df = pd.DataFrame({'A': [1, 2, 2, 3, 4, 5, 5, 5, 6, 7, 7]})
+```
+
+```{r}
+library(tidyverse)
+A <- c(1, 2, 2, 3, 4, 5, 5, 5, 6, 7, 7)
+df <- data.frame(A)
+df <- as_tibble(df) 
+```
+
+How do you filter out rows which contain the same integer as the row immediately above?
+
+You should be left with a column containing the following values: 
+```
+1, 2, 3, 4, 5, 6, 7
+```
+
+```{r}
+df %>% 
+  distinct()
+```
+
+**23.** Create a dataframe df with 5x3 of random numeric values
+
+```
+df = pd.DataFrame(np.random.random(size=(5, 3))) # this is a 5x3 DataFrame of float values
+```
+
+```{r}
+df = data.frame(replicate(5,runif(3, min=5, max=10),3))
+```
+
+How do you subtract the row mean from each element in the row?
+
+```{r}
+df_minus_row_mean <- sweep(df, MARGIN=1, STATS= rowMeans(df))
+df_minus_row_mean
+```
+
+**24.** Suppose you have DataFrame with 10 columns of real numbers, for example:
+
+```
+df = data.frame(replicate(10,runif(10, min=5, max=10),3))
+```
+
+```{r}
+df = data.frame(replicate(10,runif(10, min=5, max=10),3))
+```
+
+Which column of numbers has the smallest sum?  Return that column's label.
+
+```{r}
+sort(colSums(df), decreasing = FALSE)[1]
+```
+
+**25.** How do you count how many unique rows a DataFrame has (i.e. ignore all rows that are duplicates)? As input, use a DataFrame of zeros and ones with 10 rows and 3 columns.
+
+```{r}
+df = data.frame(replicate(3,sample(0:1,10,rep=TRUE)))
+df %>% 
+  distinct() %>% 
+  nrow()
+```
+
+The next three puzzles are slightly harder.
+
+**26.** In the cell below, you have a DataFrame `df` that consists of 10 columns of floating-point numbers. Exactly 5 entries in each row are NaN values. 
+
+For each row of the DataFrame, find the *column* which contains the *third* NaN value.
+
+You should return a Series of column labels: `e, c, d, h, d`
+
+```
+nan = np.nan
+
+data = [[0.04,  nan,  nan, 0.25,  nan, 0.43, 0.71, 0.51,  nan,  nan],
+        [ nan,  nan,  nan, 0.04, 0.76,  nan,  nan, 0.67, 0.76, 0.16],
+        [ nan,  nan, 0.5 ,  nan, 0.31, 0.4 ,  nan,  nan, 0.24, 0.01],
+        [0.49,  nan,  nan, 0.62, 0.73, 0.26, 0.85,  nan,  nan,  nan],
+        [ nan,  nan, 0.41,  nan, 0.05,  nan, 0.61,  nan, 0.48, 0.68]]
+
+columns = list('abcdefghij')
+
+df = pd.DataFrame(data, columns=columns)
+```
+
+```{r}
+# write a solution to the question here
+
+library(data.table)
+
+nested_list = list(list(0.04,  NaN,  NaN, 0.25,  NaN, 0.43, 0.71, 0.51, NaN, NaN),
+                   list(NaN,  NaN,  NaN, 0.04, 0.76,  NaN,  NaN, 0.67, 0.76, 0.16),
+                   list( NaN,  NaN, 0.5 ,  NaN, 0.31, 0.4 ,  NaN,  NaN, 0.24, 0.01),
+                   list(0.49,  NaN,  NaN, 0.62, 0.73, 0.26, 0.85,  NaN,  NaN,  NaN),
+                   list(NaN,  NaN, 0.41,  NaN, 0.05,  NaN, 0.61,  NaN, 0.48, 0.68))
+
+df = data.table::rbindlist(nested_list)
+
+letters_to_split = c(strsplit("abcdefghij", ""))
+character_vectors_for_columns = unlist(letters_to_split) 
+
+colnames(df) <- character_vectors_for_columns
+```
+For each row of the DataFrame, find the *column* which contains the *third* NaN value.
+
+```{r}
+#still unsolved
+      
+```
+**27.** A DataFrame has a column of groups 'grps' and and column of integer values 'vals': 
+```{r}
+splitted_list = strsplit('aaabbcaabcccbbc', "")
+vals = c(12,345,3,1,45,14,4,52,54,23,235,21,57,3,87)
+
+df <- data.frame(splitted_list, vals)
+colnames(df) <- c('grps', 'vals')
+```
+For each *group*, find the sum of the three greatest values. You should end up with the answer as follows:
+
+```
+grps
+a    409
+b    156
+c    345
+```
+
+```{r}
+df %>% 
+  group_by(grps) %>% 
+  summarise(sum= sum(vals))
+```
+
+**28.** The DataFrame `df` constructed below has two integer columns 'A' and 'B'. The values in 'A' are between 1 and 100 (inclusive). 
+
+For each group of 10 consecutive integers in 'A' (i.e. `(0, 10]`, `(10, 20]`, ...), calculate the sum of the corresponding values in column 'B'.
+
+The answer should be a Series as follows:
+
+```
+A               
+(0, 10]      635
+(10, 20]     360
+(20, 30]     315
+(30, 40]     306
+(40, 50]     750
+(50, 60]     284
+(60, 70]     424
+(70, 80]     526
+(80, 90]     835
+(90, 100]    852
+```
+
+```{r}
+df = data.frame(replicate(2,sample(0:100,100,rep=TRUE)))
+x <- c("A", "B")
+colnames(df) <- x
+```
+
+```{r}
+# write a solution to the question here
+sum_binned_columns = df %>% 
+  mutate(bin = cut(A, breaks = c(Inf, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100))) %>% 
+  group_by(bin) %>% 
+  summarise(sum = sum(B), n = n())
+sum_binned_columns
+```
+
+## DataFrames: harder problems 
+
+### These might require a bit of thinking outside the box...
+
+...but all are solvable using just the usual pandas/NumPy methods (and so avoid using explicit `for` loops).
+
+Difficulty: *hard*
+
+
+**29.** Consider a DataFrame `df` where there is an integer column 'X':
+
+```
+df = pd.DataFrame({'X': [7, 2, 0, 3, 4, 2, 5, 0, 3, 4]})
+```
+For each value, count the difference back to the previous zero (or the start of the Series, whichever is closer). These values should therefore be 
+
+```
+[1, 2, 0, 1, 2, 3, 4, 0, 1, 2]
+```
+Make this a new column 'Y'
+
+```{r}
+library(tidyverse)
+
+integers = c(7, 2, 0, 3, 4, 2, 5, 0, 3, 4)
+
+l = c(7, 2, 0, 3, 4, 2, 5, 0, 3, 4)
+i = 0
+
+`%+=%` = function(e1,e2) eval.parent(substitute(e1 <- e1 + e2))
+
+for (element in l) {
+    if (element != 0) {
+        i %+=% 1
+    }
+    else {
+        i = 0
+    }
+    vector <- c(vector, i)     
+}
+```
+
+**30.** Consider the DataFrame constructed below which contains rows and columns of numerical data. 
+
+Create a list of the column-row index locations of the 3 largest values in this DataFrame. In this case, the answer should be:
+```
+list(c(5, 7), c(6, 4), c(2, 5))
+```
+
+```{r}
+df = data.frame(replicate(8,sample(1:101,8,rep=TRUE)))
+```
+
+```{r}
+lst = c(tail(sort(unlist(df, use.names = FALSE)), 3))
+
+for (element in lst) {
+  print(element)
+  print(which(df==element, arr.ind=TRUE))
+}
+```
