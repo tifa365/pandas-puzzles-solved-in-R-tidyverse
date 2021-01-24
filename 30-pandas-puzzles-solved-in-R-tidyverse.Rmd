@@ -1,34 +1,22 @@
 ---
-title: "30 pandas puzzles solved in R Tidyverse"
+title: "30 Pandas data puzzles solved in R Tidyverse"
 output:
   html_document:
     code_folding: show
 ---
 
-The original source of the pandas exercises is  [100 Pandas Puzzles](https://github.com/ajcr/100-pandas-puzzles/blob/master/100-pandas-puzzles.ipynb), the pandas solutions can be found on the very same website.
+The original source of the pandas exercises is [100 Pandas Puzzles](https://github.com/ajcr/100-pandas-puzzles). The solutions for Pandas can be found in the very same repository.
 
-I solved 30 of the 60 pandas exercises in R. The notebook is yet incomplete, will definitely still contain mistakes and puzzles 28 remains yet unsolved. My R coding skills still need a lot of improvements but since so few learning material is out there catering to R Tidyverse and Python pandas learners, I chose to give it a shot and at least cover the basics. If you like to find out more about the differences between pandas and R, I recommen checking out the [Pandas Quick Reference](https://pandas.pydata.org/docs/getting_started/comparison/comparison_with_r.html) I hopefully will complete the remaining exercises sooner or later. I'll post the solutions in this repository, so stay tuned. 
+I solved 30 of the 60 pandas exercises in R Tidyverse and R. The notebook is yet incomplete, will most likely still contain mistakes. My R coding skills still need a lot of improvements but since so few learning material is out there catering to R Tidyverse and Python Pandas learners simultaneously, I decided to put myself out there and give it a shot. 
 
-**The code solutions are still visible but can be toggled to invisible by clicking the "code" button on the right.**
+If you like to find out more about the differences and similarties between Pandas and R, I recommend checking out the [Pandas Quick Reference](https://pandas.pydata.org/docs/getting_started/comparison/comparison_with_r.html) and the article [Anything you can do, I can do (kinda). Tidyverse pipes in Pandas](https://stmorse.github.io/journal/tidyverse-style-pandas.html) by  Steven Morse.
 
-Original notes:
-
-Inspired by 100 Numpy exercises, here are 100* short puzzles for testing your knowledge of pandas' power.
-
-Since pandas is a large library with many different specialist features and functions, these excercises focus mainly on the fundamentals of manipulating data (indexing, grouping, aggregating, cleaning), making use of the core DataFrame and Series objects. 
-
-Many of the excerises here are stright-forward in that the solutions require no more than a few lines of code (in pandas or NumPy... don't go using pure Python or Cython!). Choosing the right methods and following best practices is the underlying goal.
-
-The exercises are loosely divided in sections. Each section has a difficulty rating; these ratings are subjective, of course, but should be a seen as a rough guide as to how inventive the required solution is.
-
-Enjoy the puzzles!
-
-\* *the list of exercises is not yet complete! Pull requests or suggestions for additional exercises, corrections and improvements are welcomed.*
+**The code solutions are yet visible but can be toggled to invisible by clicking the "code" button on the right if you like to solve the questions yourself. Translating the creation of dataframes from Pandas to R is an important part of the exercise but can be skipped. Pull requests or code suggestions in Github Issues for corrections and improvements are welcomed.**
 
 
-## Importing tidyverse
+## Importing R Tidyverse
 
-### Getting started and checking your tidyverse setup
+### Getting started and checking your R Tidyverse setup
 
 Difficulty: *easy* 
 
@@ -42,7 +30,9 @@ library(tidyverse)
 ```{r}
 packageVersion("tidyverse")
 ```
+
 **3.** Print out all the *version* information of the libraries that are included with the tidyverse library.
+
 ```{r}
 sessionInfo()
 ```
@@ -65,7 +55,7 @@ labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
 ```
 (This is just some meaningless data I made up with the theme of animals and trips to a vet.)
 
-**4.** Create an R tibble or dataframe called `df` from the Python `data` which has the index `labels`.
+**4.** Create an R tibble or dataframe called `df` from the (Python) `data` which has the index `labels`.
 
 ```{r}
 animal <-
@@ -325,27 +315,31 @@ df = pd.DataFrame(data, columns=columns)
 
 ```{r}
 # write a solution to the question here
-
+library(tidyverse)
 library(data.table)
 
-nested_list = list(list(0.04,  NaN,  NaN, 0.25,  NaN, 0.43, 0.71, 0.51, NaN, NaN),
-                   list(NaN,  NaN,  NaN, 0.04, 0.76,  NaN,  NaN, 0.67, 0.76, 0.16),
-                   list( NaN,  NaN, 0.5 ,  NaN, 0.31, 0.4 ,  NaN,  NaN, 0.24, 0.01),
-                   list(0.49,  NaN,  NaN, 0.62, 0.73, 0.26, 0.85,  NaN,  NaN,  NaN),
-                   list(NaN,  NaN, 0.41,  NaN, 0.05,  NaN, 0.61,  NaN, 0.48, 0.68))
+data = list(
+  list(0.04,  NaN,  NaN, 0.25,  NaN, 0.43, 0.71, 0.51, NaN, NaN),
+  list(NaN,  NaN,  NaN, 0.04, 0.76,  NaN,  NaN, 0.67, 0.76, 0.16),
+  list(NaN,  NaN, 0.5 ,  NaN, 0.31, 0.4 ,  NaN,  NaN, 0.24, 0.01),
+  list(0.49,  NaN,  NaN, 0.62, 0.73, 0.26, 0.85,  NaN,  NaN,  NaN),
+  list(NaN,  NaN, 0.41,  NaN, 0.05,  NaN, 0.61,  NaN, 0.48, 0.68)
+)
 
-df = data.table::rbindlist(nested_list)
+df = data.table::rbindlist(data)
 
 letters_to_split = c(strsplit("abcdefghij", ""))
-character_vectors_for_columns = unlist(letters_to_split) 
+character_vectors_for_columns = unlist(letters_to_split)
 
 colnames(df) <- character_vectors_for_columns
+
+
 ```
 For each row of the DataFrame, find the *column* which contains the *third* NaN value.
 
 ```{r}
-#still unsolved
-      
+subscript  <- apply(df, MARGIN =1, FUN = function(x) which(is.na(x))[3])
+colnames(df)[subscript]
 ```
 **27.** A DataFrame has a column of groups 'grps' and and column of integer values 'vals': 
 ```{r}
